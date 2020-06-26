@@ -9,14 +9,19 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
+
 export default {
     name: 'BudgetFilter',
     data: () => ({
         filterValue: 0,
     }),
+    methods: {
+        ...mapActions("items", ["setFilter"]),
+    },
     watch: {
         filterValue(){
-            this.$emit('filterChange', this.filterValue);
+            this.setFilter(this.filterValue);
         }
     }
 }

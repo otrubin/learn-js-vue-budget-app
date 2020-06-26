@@ -5,15 +5,12 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+
 export default {
     name: 'TotalBallans',
-    props: {
-        total: {
-            type: Number,
-            default: 0,
-        }
-    },
     computed: {
+        ...mapGetters("items", ["total"]),
         getClasses(){
             const result = ["total-value"];
             if(this.total > 0){

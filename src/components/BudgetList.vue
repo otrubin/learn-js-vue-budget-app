@@ -2,9 +2,9 @@
     <div class="budget-list-wrap">
         <el-card :header="header">
             <template v-if="!isEmpty" >
-                <BudgetFilter @filterChange="onFilterChange" />
-                <template v-for="(item, id) in displayList" >
-                    <BudgetListItem :itemData="item" @deleteItem="onDeleteItem" :key="id"/>
+                <BudgetFilter />
+                <template v-for="(item, index) in filterItemsAsArray" >
+                    <BudgetListItem :itemData="item" @deleteItem="onDeleteItem" :key="index"/>
                 </template>
             </template>
             <el-alert v-else type="info" :title="emptyTitle" />
@@ -23,6 +23,8 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+import { mapActions } from "vuex";
 import BudgetListItem from '@/components/BudgetListItem';
 import BudgetFilter from '@/components/BudgetFilter';
 
@@ -49,11 +51,10 @@ export default {
         displayList: {},
     }),
     computed: {
-        isEmpty(){
-            return !Object.keys(this.list).length;
-        },
+        ...mapGetters("items", ["filterItemsAsArray", "isEmpty", "getItemFromId"]),
     },
     methods: {
+        ...mapActions("items", ["deleteBudgetItem"]),
         onDeleteItem(id){
             this.deletionId = id;
             this.makeConfirmDeletionText(id);
@@ -62,46 +63,13 @@ export default {
         onConfirmDeletionDialogClose(isDelete){
             this.confirmDeletionDialogVisible = false;
             if (isDelete){
-                this.$emit("deleteItem", this.deletionId);
+                this.deleteBudgetItem(this.deletionId);
             }
         },
         makeConfirmDeletionText(id){
-            this.confirmDeletionText = `Confirm the removal of the budget line: ${this.list[id].comment}`;
+            this.confirmDeletionText = `Confirm the removal of the budget line: ${this.getItemFromId(id).comment}`;
         },
-        makeDisplayList(){
-            function checkItemType(type, filterValue){
-                let result = true;
-                switch(filterValue){
-                    case 1:
-                        result = type === 'INCOME';
-                        break;
-                    case -1:
-                        result = type === 'OUTCOME';
-                        break;
-                }
-                return result;
-            }
-
-            this.displayList = Object.values(this.list).reduce((acc, item) => {
-                if (checkItemType(item.type, this.filterValue)){
-                    acc[item.id] = item;
-                }
-                return acc;
-            }, {});
-        },
-        onFilterChange(filterValue){
-            this.filterValue = filterValue;
-            this.makeDisplayList();
-        }
     },
-    created(){
-        this.displayList = this.list;
-    },
-    watch: {
-        list(){
-            this.makeDisplayList();
-        }
-    }
 }
 </script>
 
